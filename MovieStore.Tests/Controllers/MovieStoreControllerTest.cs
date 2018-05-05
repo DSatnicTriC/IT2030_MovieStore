@@ -134,5 +134,51 @@ namespace MovieStore.Tests.Controllers
             //Assert
             Assert.IsNotNull(result);
         }
+
+        [TestMethod]
+        public void MovieStore_Details_NoId()
+        {
+            MoviesController controller = new MoviesController();
+
+            //Act
+            HttpStatusCodeResult result = controller.Details(null) as HttpStatusCodeResult;
+
+            //Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, (HttpStatusCode)result.StatusCode);
+        }
+
+        [TestMethod]
+        public void MovieStore_Details_MovieNull()
+        {
+            //Arrange
+            Mock<MovieStoreDbContext> mockContext = new Mock<MovieStoreDbContext>();
+            Mock<DbSet<Movie>> mockSet = new Mock<DbSet<Movie>>();
+
+
+            var list = new List<Movie>
+            {
+                new Movie {MovieId = 1, Title = "Jaws"},
+                new Movie {MovieId = 2, Title = "Despicable Me"}
+            }.AsQueryable();
+            
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.Provider).Returns(list.Provider);
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.GetEnumerator()).Returns(list.GetEnumerator());
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.Expression).Returns(list.Expression);
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.ElementType).Returns(list.ElementType);
+
+            Movie movie = null;
+            mockSet.Setup(m => m.Find(It.IsAny<Object>())).Returns(movie);
+
+            mockContext.Setup(db => db.Movies).Returns(mockSet.Object);
+
+            //Controller needs a mock object for Dependency Injection
+            MoviesController controller = new MoviesController(mockContext.Object);
+
+            //Act
+            HttpStatusCodeResult result = controller.Details(1) as HttpStatusCodeResult;
+
+            //Assert
+            Assert.AreEqual(HttpStatusCode.NotFound, (HttpStatusCode)result.StatusCode);
+        }
     }
 }

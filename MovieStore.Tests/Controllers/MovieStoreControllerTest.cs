@@ -182,7 +182,7 @@ namespace MovieStore.Tests.Controllers
         }
 
         [TestMethod]
-        public void MovieStore_Edit_Success()
+        public void MovieStore_Edit_IntParam_Success()
         {
             //Arrange
             Mock<MovieStoreDbContext> mockContext = new Mock<MovieStoreDbContext>();
@@ -214,7 +214,7 @@ namespace MovieStore.Tests.Controllers
         }
 
         [TestMethod]
-        public void MovieStore_Edit_NoId()
+        public void MovieStore_Edit_IntParam_NoId()
         {
             MoviesController controller = new MoviesController();
 
@@ -227,7 +227,7 @@ namespace MovieStore.Tests.Controllers
         }
 
         [TestMethod]
-        public void MovieStore_Edit_MovieNull()
+        public void MovieStore_Edit_IntParam_MovieNull()
         {
             //Arrange
             Mock<MovieStoreDbContext> mockContext = new Mock<MovieStoreDbContext>();
@@ -337,6 +337,125 @@ namespace MovieStore.Tests.Controllers
 
             //Assert
             Assert.AreEqual(HttpStatusCode.NotFound, (HttpStatusCode)result.StatusCode);
+        }
+
+
+        [TestMethod]
+        public void MovieStore_Create_MovieParam_Success()
+        {
+            //Arrange
+            Mock<MovieStoreDbContext> mockContext = new Mock<MovieStoreDbContext>();
+            Mock<DbSet<Movie>> mockSet = new Mock<DbSet<Movie>>();
+
+
+            var list = new List<Movie>
+            {
+                new Movie {MovieId = 1, Title = "Jaws"},
+                new Movie {MovieId = 2, Title = "Despicable Me"}
+            }.AsQueryable();
+
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.Provider).Returns(list.Provider);
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.GetEnumerator()).Returns(list.GetEnumerator());
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.Expression).Returns(list.Expression);
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.ElementType).Returns(list.ElementType);
+            mockSet.Setup(m => m.Add(It.IsAny<Movie>())).Returns(list.First());
+
+            mockContext.Setup(db => db.Movies).Returns(mockSet.Object);
+
+            //Controller needs a mock object for Dependency Injection
+            MoviesController controller = new MoviesController(mockContext.Object);
+
+            //Act
+            var result = controller.Create(list.First()) as RedirectToRouteResult;
+
+            //Assert
+            Assert.AreEqual("Index", result.RouteValues["action"]);
+        }
+
+        [TestMethod]
+        public void MovieStore_Create_MovieParam_BadBind()
+        {
+            //Arrange
+            MoviesController controller = new MoviesController();
+            controller.ModelState.AddModelError("key", "error message");
+
+            var list = new List<Movie>
+            {
+                new Movie {MovieId = 1, Title = "Jaws"},
+                new Movie {MovieId = 2, Title = "Despicable Me"}
+            }.AsQueryable();
+
+            //Act
+            var result = controller.Create(list.First()) as ViewResult;
+
+            //Assert
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public void MovieStore_Create_NoParam()
+        {
+            //Arrange
+            MoviesController controller = new MoviesController();
+            
+            //Act
+            var result = controller.Create() as ViewResult;
+
+            //Assert
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public void MovieStore_Edit_MovieParam_BadBind()
+        {
+            //Arrange
+            MoviesController controller = new MoviesController();
+            controller.ModelState.AddModelError("key", "error message");
+
+            var list = new List<Movie>
+            {
+                new Movie {MovieId = 1, Title = "Jaws"},
+                new Movie {MovieId = 2, Title = "Despicable Me"}
+            }.AsQueryable();
+
+            //Act
+            var result = controller.Edit(list.First()) as ViewResult;
+
+            //Assert
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public void MovieStore_Delete_IntParam_Success()
+        {
+            //Arrange
+            Mock<MovieStoreDbContext> mockContext = new Mock<MovieStoreDbContext>();
+            Mock<DbSet<Movie>> mockSet = new Mock<DbSet<Movie>>();
+
+
+            var list = new List<Movie>
+            {
+                new Movie {MovieId = 1, Title = "Jaws"},
+                new Movie {MovieId = 2, Title = "Despicable Me"}
+            }.AsQueryable();
+
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.Provider).Returns(list.Provider);
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.GetEnumerator()).Returns(list.GetEnumerator());
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.Expression).Returns(list.Expression);
+            mockSet.As<IQueryable<Movie>>().Setup(m => m.ElementType).Returns(list.ElementType);
+            mockSet.Setup(m => m.Find(It.IsAny<int>())).Returns(list.First());
+            mockSet.Setup(m => m.Remove(It.IsAny<Movie>())).Returns(list.First());
+
+            mockContext.Setup(db => db.Movies).Returns(mockSet.Object);
+
+            //Controller needs a mock object for Dependency Injection
+            MoviesController controller = new MoviesController(mockContext.Object);
+
+            //Act
+            var result = controller.Create(list.First()) as RedirectToRouteResult;
+
+            //Assert
+            Assert.AreEqual("Index", result.RouteValues["action"]);
         }
     }
 }

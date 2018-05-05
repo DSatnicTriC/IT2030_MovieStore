@@ -12,7 +12,19 @@ namespace MovieStore.Controllers
 {
     public class MoviesController : Controller
     {
-        private MovieStoreDbContext db = new MovieStoreDbContext();
+        private MovieStoreDbContext db;
+
+        //Will be used when the application is executed
+        public MoviesController()
+        {
+            db = new MovieStoreDbContext();
+        }
+
+        //Will be used by the unit test
+        public MoviesController(MovieStoreDbContext dbContext)
+        {
+            db = dbContext;
+        }
 
         // GET: Movies
         public ActionResult Index()

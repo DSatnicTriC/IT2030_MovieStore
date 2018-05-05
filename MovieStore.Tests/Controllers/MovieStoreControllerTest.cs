@@ -4,6 +4,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MovieStore.Controllers;
 using MovieStore.Models;
 using System.Net;
+using Moq;
+using System.Data.Entity;
+using System.Linq;
 
 namespace MovieStore.Tests.Controllers
 {
@@ -69,7 +72,14 @@ namespace MovieStore.Tests.Controllers
         public void MovieStore_ListFromDb()
         {
             //Arrange
-            MoviesController controller = new MoviesController();
+            Mock<MovieStoreDbContext> mockContext = new Mock<MovieStoreDbContext>();
+            Mock<DbSet<Movie>> mockSet = new Mock<DbSet<Movie>>();
+
+
+
+            //Controller needs a mock object for Dependency Injection
+            MoviesController controller = new MoviesController(mockContext.Object);
+            
 
             //Act
             var result = controller.ListFromDb() as ViewResult;
